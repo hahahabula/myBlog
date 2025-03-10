@@ -1,0 +1,203 @@
+---
+title: "机器学习的简单实例：线性回归"
+date: 2025/02/16
+categories: [深度学习, 《神经网络和深度学习》]
+description: "介绍有关线性回归模型在不同学习准则和优化算法下的不同情况"
+---
+
+# 线性模型
+
+$$
+f(x;w,b)=w^Tx+b
+$$
+
+上式中的权重向量 $w\in\mathbb{R}^d$ 和偏置 $b\in \mathbb{R}$，是可学习的参数，其可写成如下形式：
+
+$$
+f(x;\tilde{w})=\tilde{w}^T\cdot\tilde{x}
+$$
+
+# 参数学习
+
+已知一组包含 $N$ 个训练样本的训练集 $\mathcal{D}=\{(x^{(n)},y^{(n)}\}^D_{n=1}$，下文将探讨如何学习有关最优的线性回归的模型参数 $w$。
+
+## 经验风险最小化（最小二乘法）
+
+损失函数采用平方损失函数，按照经验风险最小化准则，训练集上的经验风险定义为：
+
+![最小二乘计算过程](images/paste-1.png){width="495"}
+
+::: callout-tip
+## 最小二乘法得出的最优参数的限制
+
+由最优参数 $w^*$ 的形式可得：要求 $XX^T$ 满秩。当 $XX^T$ 不可逆时，可采用下面两种方法来估计参数：
+
+-   先使用主成分分析等方法来预处理数据，消除不同特征之间的相关性，然后再使用最小二乘法来估计参数（减少特征的维数）
+-   通过梯度下降法来估计参数，先初始化 $w=0$，然后通过下面公式进行迭代：
+
+$$
+w\leftarrow w+\alpha X(y-X^Tw)
+$$
+:::
+
+```{python}
+# 生成模拟数据
+import numpy as np
+# 设置随机种子，确保结果可重复
+np.random.seed(42)
+# 参数设置
+num_points = 100  # 数据点数量
+a = 2  # 斜率
+b = 5  # 截距
+sigma = 3  # 噪声的标准差
+# 生成X值（随机或均匀分布）
+X = np.linspace(1, 10, num_points)  # 在1到10之间均匀生成num_points个点
+epsilon = np.random.normal(0, sigma, num_points)  # 生成正态分布噪声
+Y = a * X + b + epsilon
+Y = Y.reshape(-1, 1)
+
+# 利用经验风险最小化计算权重
+X_t = np.vstack((X, [1 for _ in range(num_points)]))
+w = np.linalg.inv(X_t @ X_t.T) @ X_t @ Y
+print(f"经验风险最小化后的权重系数：\n{w}")
+```
+
+当采用小批量随机梯度下降法来估计参数，结果如下：
+
+```{python}
+import tensorflow as tf
+tf.random.set_seed(42)
+# 1. 定义模型
+class LinearRegressionModel:
+    def __init__(self):  # <1>
+        # 初始化权重
+        self.weights = tf.Variable(initial_value=tf.random.normal([2, 1]), name="权重", dtype=tf.float32)  # <2>
+    def __call__(self, x):
+        return tf.matmul(x, self.weights)  # <3>
+# 2. 定义损失函数（均方误差）
+def mean_squared_error(y_true, y_pred):
+    return tf.reduce_mean(tf.square(y_true - y_pred))  # <4>
+# 3. 小批量随机梯度下降算法
+def train(model, X, y, learning_rate=0.01, batch_size=10, epochs=100):
+    # 创建优化器
+    optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
+    # 划分小批量
+    dataset = tf.data.Dataset.from_tensor_slices((X, y))
+    dataset = dataset.shuffle(buffer_size=X.shape[0]).batch(batch_size)
+
+    for epoch in range(epochs):
+        for batch_X, batch_y in dataset:
+            with tf.GradientTape() as tape:
+                # 计算预测值
+                y_pred = model(batch_X)
+                # 计算损失
+                loss = mean_squared_error(batch_y, y_pred)
+             # 计算梯度
+            gradients = tape.gradient(loss, model.weights)
+            # 更新参数
+            optimizer.apply_gradients([(gradients, model.weights)])
+    return model.weights.numpy()
+# 训练模型
+model = LinearRegressionModel()
+weights = train(model, tf.constant(X_t.T, dtype=tf.float32), tf.constant(Y, dtype=tf.float32), learning_rate=0.01, batch_size=10, epochs=1000)
+print(f"采用小批量随机梯度下降法训练后的权重: \n{weights}")
+```
+
+1.  初始化模型参数
+2.  tf.random.normal(\[2, 1\])中的\[2,1\]指的是参数的维度
+3.  构造模型的形式
+4.  构造损失函数
+
+::::: grid
+::: g-col-4
+```{mermaid}
+%%| fig-cap: "利用tensorflow实现机器学习模型的步骤图"
+classDiagram
+    class 构建模型{
+        +初始化模型参数(__init__)
+        +表示模型(__call__)
+    }
+    class 学习准则{
+        +函数名(y_true, y_pred)
+    }
+    class 优化算法{
+        +定义优化算法(train)
+    }
+构建模型 --> 学习准则
+学习准则 --> 优化算法
+```
+:::
+
+::: g-col-8
+```{python}
+#| fig-cap: "结果对比图"
+#| echo: false
+x = np.linspace(0, 10, 1000)
+x_t = np.vstack((x, [1 for _ in range(1000)]))
+y_pred_OLS = x_t.T @ w
+y_pred_GD = x_t.T @ weights
+y_true = x_t.T @ np.array([[2], [5]])
+
+import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = 'Times New Roman, SimSun'
+plt.rcParams['mathtext.fontset'] = 'stix'  # 设置数学公式字体为stix
+plt.rcParams['axes.unicode_minus'] = False  # 正确显示负号
+
+fig, ax = plt.subplots(figsize=(8, 6))
+ax.plot(x, y_pred_OLS, label="最小二乘估计", ls="-")
+ax.plot(x, y_pred_GD, label="小批量随机梯度下降算法", ls="-")
+ax.plot(x, y_true, label="真实", ls="-")
+ax.scatter(X, Y, label="样本点", c="black")
+plt.legend()
+plt.show()
+```
+
+由上图结果可得，两种算法的效率类似，且都在靠近0的部分有较大偏离。
+:::
+:::::
+
+## 结构风险最小化（岭回归）
+
+结构风险最小化等价于岭回归，可以用解决最小二乘回归法对 $XX'$ 满秩的要求。岭回归的想法是在 $XX'$ 中加入 $\lambda I$ 一项使得 $XX'+\lambda I$ 满秩，而结构风险最小化是追求下式目标函数最小( $\lambda>0$ 为正则化系数：
+
+$$
+R(w)=\frac 1 2||y-X^Tw||^2+\frac 12 \lambda ||w||^2
+$$
+
+由下图可得二者结果等价。
+
+![结构风险最小化等价于岭回归](images/paste-1.jpeg){width="602"}
+
+## 最大似然估计
+
+::: callout-tip
+## 机器学习任务的分类
+
+1.  样本的特征向量 $x$ 和标签 $y$ 之间存在未知的函数关系 $y=h(x)$
+2.  条件概率 $p(y|x)$ 服从某个未知分布
+:::
+
+之前介绍的最小二乘法是属于第一类，现在从建模条件概率 $p(y|x)$ 的角度进行参数估计。
+
+假设 $y\sim N(\tilde{w}^Tx, \sigma^2)$，参数 $\tilde{w}$ 在训练集 $\mathcal{D}$ 上的似然函数为：
+
+$$
+\begin{aligned}
+p(y|\tilde{X};w,\sigma)&= \prod_{n=1}^Np(y^{(n)}|x^{(n)};\tilde{w},\sigma)\\
+&=\prod_{n=1}^N N(\tilde{w}^Tx^{(n)},\sigma^2)
+\end{aligned}
+$$
+
+由最大似然估计原理可得如下图：
+
+![最大似然估计的结果](images/paste-2.jpeg){width="587"}
+
+易得最大似然估计的解和最小二乘法的解相同。
+
+## 最大后验估计
+
+假设参数 $\tilde{w}$ 为一个随机向量，并服从一个先验分布 $p(\tilde{w};v)=N(\tilde{w};0,v^2I)$， $v^2$ 为每一维上的方差。
+
+由贝叶斯估计原理得如下图：
+
+![最大后验估计](images/paste-3.jpeg)

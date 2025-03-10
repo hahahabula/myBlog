@@ -1,0 +1,16 @@
+---
+title: "降雨二元预测"
+date: 2025/03/02
+description: "[Kaggle上的竞赛](https://www.kaggle.com/competitions/playground-series-s5e3/overview)"
+categories: [项目, 深度学习]
+---
+
+# 分析
+
+1. 不知到该城市是位于南半球还是北半球，且无法确定是否为同一个城市。
+2. 降雨在四季拥有不同的机制，应当依据不同的季节分别训练四个模型。（LS-PLM)
+3. 是否有不同年份降雨机制上的差异？
+
+# 数据可视化
+
+

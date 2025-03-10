@@ -1,0 +1,58 @@
+---
+title: "Day9"
+date: 2025/03/07
+categories: [刷题, 算法]
+description: "介绍有关线性表中数组部分的加一"
+---
+
+::: callout-caution
+# 恶补
+
+前一阵子在忙组会，耽误了😭
+:::
+
+# 加一
+
+![](images/paste-1.png)
+
+::: panel-tabset
+# Python
+
+``` python
+class Solution:
+    def plusOne(self, digits: List[int]) -> List[int]:
+        plus = 1
+        for i in range(len(digits)-1, -1, -1):
+            if digits[i] + plus >= 10:
+                digits[i] = 0
+                plus = 1
+            else:
+                digits[i] += plus
+                break
+            if i == 0 and plus == 1:
+                digits.insert(0, plus)
+        return digits
+```
+
+# C++
+
+``` cpp
+class Solution {
+public:
+    vector<int> plusOne(vector<int>& digits) {
+        auto last = digits.end();
+        for (auto i = last-1; i >= digits.begin(); i--) {
+            if ((*i + 1) == 10) {
+                *i = 0;
+            } else {
+                *i = *i + 1;
+                break;
+            }
+            if (i == digits.begin()) digits.insert(digits.begin(), 1);
+        }
+        return digits;
+    }
+};
+```
+:::
+

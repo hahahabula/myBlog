@@ -1,0 +1,166 @@
+---
+title: "Day5"
+date: 2025/02/27
+categories: [刷题, 算法]
+description: "介绍有关线性表中数组部分的最长连续序列和两数之和"
+---
+
+# 最长连续序列
+
+![](images/paste-1.png)
+
+::: callout-note
+# 分析
+
+由于要求时间复杂度为 $O(n)$，同时该题的本质在于查询，哈希表的查询效率就是 $O(1)$ 。因此可以采用哈希表进行查询同时遍历所有值
+:::
+
+::: panel-tabset
+# 伪代码
+
+``` pseudocode
+\begin{algorithm}
+\caption{longestConsecutive(nums)}
+\begin{algorithmic}
+\State 哈希表 used
+\For{i in nums}
+    \State used[i] = false \Comment{初始化所有索引认为均未遍历}
+\EndFor
+\State longest = 0\Comment{设置初始化最大连续长度}
+\For{i in nums}\Comment{开始遍历全部元素这也是时间复杂度为$O(n)$的原因}
+    \If{used[i]}
+        \Continue\Comment{若被遍历过说明其已找到属于它的最大连续子数组，没有必要再遍历}
+    \EndIf
+    \State length = 1\Comment{初始化最大连续长度}
+    \State used[i] = True\Comment{标记该元素已经被遍历}
+    \State j = i + 1\Comment{开始遍历其右侧的值直至不再连续}
+    \While{j in used.keys}
+        \State used[j] = true
+        \State length += 1\Comment{找到了一个连续的}
+        \State j += 1
+    \EndWhile
+    \State j = i - 1\Comment{继续寻找i左侧的连续值}
+    \While{j in used.keys}
+        \State used[j] = true
+        \State length += 1
+        \State j -= 1
+    \EndWhile
+    \State longest = max(length, longest)
+\EndFor
+\Return longest
+\end{algorithmic}
+\end{algorithm}
+```
+
+# C++
+
+``` cpp
+class Solution {
+public:
+    int longestConsecutive(vector<int>& nums) {
+        unordered_map<int, bool> used;  // 创建哈希表
+        for (auto i : nums) used[i] = false;
+        int longest = 0;
+        for (auto i : nums){  // 利用auto i : nums遍历nums中的值
+            if (used[i]) continue;
+            int length = 1;
+            used[i] = true;
+            for (int j = i + 1; used.find(j) != used.end(); ++j){
+                used[j] = true;
+                ++length;
+            }
+            for (int j = i - 1;used.find(j) != used.end(); --j){
+                used[j] = true;
+                ++length;
+            }
+            longest = max(longest, length);
+        }
+        return longest;
+    }
+};
+```
+
+# Python
+
+``` python
+class Solution:
+    def longestConsecutive(self, nums: List[int]) -> int:
+        used = dict();
+        for i in nums:
+            used[i] = False
+        longest = 0
+        for i in nums:
+            if used[i]: continue
+            length = 1
+            used[i] = True
+            j = i + 1
+            while j in used:
+                used[j] = True
+                length += 1
+                j += 1
+            j = i - 1
+            while j in used:
+                used[j] = True
+                length += 1
+                j -= 1
+            longest = max(length, longest)
+        return longest
+        
+```
+:::
+
+# 两数之和
+
+![](images/paste-2.png)
+
+::: callout-note
+# 分析
+
+为了尽量使时间复杂度较低，现分析几种方法：
+
+-   暴力枚举法($C_n^2\to O(n^2)$)
+-   先排序($O(n\log n)$)后夹逼($O(n)$)，最终 $O(n\log n)$
+-   哈希：用一个哈希表，存储每个数对应的下标，复杂度 $O(n)$
+:::
+
+::: panel-tabset
+# 伪代码
+
+该题较为简单暂不书写伪代码😃
+
+# Python
+
+``` python
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        used = dict()
+        for i in range(len(nums)): used[nums[i]] = i  # 此处便保证了仅有较后的索引会留下在返回值时无需再判断索引的大小关系
+        for i, num in enumerate(nums):
+            remain = target - num
+            if remain in used and used[remain] > i:
+                return [i, used[remain]]
+```
+
+# C++
+
+``` cpp
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int,int> mapping;
+        vector<int> result;
+        for (int i = 0; i < nums.size(); i++) mapping[nums[i]] = i;
+        for (int i = 0; i < nums.size(); i++){
+            int gap = target - nums[i];
+            if (mapping.find(gap) != mapping.end() && mapping[gap] > i){
+                result.push_back(i);
+                result.push_back(mapping[gap]);
+            }
+        }
+        return result;
+
+    }
+};
+```
+:::
+

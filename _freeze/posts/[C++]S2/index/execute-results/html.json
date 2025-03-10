@@ -1,0 +1,12 @@
+{
+  "hash": "4ddf757f5ac9dc299b7838a851ea1eaa",
+  "result": {
+    "engine": "jupyter",
+    "markdown": "---\ntitle: \"S2.C++基本语法\"\ndate: 2025/02/12\ndate-modified: 2025/02/12\ncategories: [编程, C++]\n---\n\n\nC++程序可以定义为对象的集合，类、对象、方法、即时变量的定义如下：\n- 对象： 类的实例化，例如具体的人张三、李四。\n- 类：描述对象虚报范围/状态的模板，例如人这个概念。\n- 方法：类中的一种行为，例如人跑步。\n- 即时变量： 每个对象都有其独特的即时变量。对象的状态是由这些即时变量的值创建的。（属性？）\n\n# C++程序结构\n\n\n```{cpp}\n#include <iostream>  # <1>\nusing namespace std;  # <2>\n\nint main(){  # <3>\n    cout << \"Hello World\";\n    return 0;\n}\n```\n\n1. C++语言定义的头文件，包含了程序中必须的或有用的信息\n2. 告诉编译器使用std命名空间\n3. int main()是主函数，程序从这里开始\n\n",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [],
+    "includes": {}
+  }
+}

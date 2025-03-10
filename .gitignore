@@ -1,0 +1,9 @@
+# 忽略用户目录的无关文件
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+*.tmp
+/.quarto/
+
+/.luarc.json

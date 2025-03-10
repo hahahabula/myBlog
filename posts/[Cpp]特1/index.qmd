@@ -1,0 +1,39 @@
+---
+title: "C++模板参数、字符串的处理"
+date: 2025/3/3
+categories: [C++]
+description: "介绍有关C++模板参数和字符串的处理"
+---
+
+1）`string s(n, "0")`：该语句的本质上是创建一个string类型的变量并且设置长度为n，默认值都为"0"。类似的还有std::vector<T>；std::deque<T>；std::list<T>；std:array<T,N>（必须在创建后立马进行初始化）。
+
+2）T用作类型参数的占位符，表示一个可以代表任何类型的通用类型。
+
+```c++
+template <typename Sequence>  // <1>
+Sequence kth_permutation(const Sequence& seq, int k) {  // <2>
+    const int n = seq.size(); 
+    Sequence S(seq);
+    Sequence result;
+    int base = factorial(n - 1);
+    --k;
+    for (int i = n - 1; i > 0; k %= base, base /= i, --i) {
+        auto a = next(S.begin(), k / base);  // <3>
+        result.push_back(*a);
+        S.erase(a);  // <4>
+    }
+    result.push_back(S[0]);
+    return result;
+}
+```
+1. 表示接下来的函数或类是一个模板，在此处的Sequence表示任何迭代器（str::string、std::vector<char>等）
+2. `const Sequence&` 表示常量引用即不能通过该引用修改变量的值
+3. 产生一个迭代器
+4. 删除指定位置上的元素
+
+
+3）`bool used[9]`：创建一个长度为9的布尔数组；used 在大多数表达式中等价于 &used[0]，即指向 used 数组第一个元素的指针。
+
+4）`fill(used, used+9, false)`：为used首个元素和第9个元素赋值为false。
+
+

@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Hahabula">
+<meta name="dcterms.date" content="2025-02-07">
+<meta name="description" content="介绍GBDT模型">
+
+<title>GBDT模型 – Hahabula_blog</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-1092c56c6cadf2eb47b1bc8063ab382a.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-1e3344b42507be46aa4512978d1a1b1a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
+<link href="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script>
+MathJax = {
+  loader: {
+    load: ['[tex]/boldsymbol']
+  },
+  tex: {
+    tags: "all",
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    packages: {
+      '[+]': ['boldsymbol']
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../.././blog_icon.jpg" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hahabula_blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">主页</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">关于</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default toc-left page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">GBDT模型</h1>
+                  <div>
+        <div class="description">
+          介绍GBDT模型
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">机器学习</div>
+                <div class="quarto-category">搜广推</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Hahabula </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">February 7, 2025</p>
+      </div>
+    </div>
+    
+      <div>
+      <div class="quarto-title-meta-heading">Modified</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">February 7, 2025</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="3">
+    <h2 id="toc-title">目录</h2>
+   
+  <ul>
+  <li><a href="#gbdt详解" id="toc-gbdt详解" class="nav-link active" data-scroll-target="#gbdt详解"><span class="header-section-number">1</span> GBDT详解</a>
+  <ul class="collapse">
+  <li><a href="#gbdt的原理" id="toc-gbdt的原理" class="nav-link" data-scroll-target="#gbdt的原理"><span class="header-section-number">1.1</span> GBDT的原理</a></li>
+  <li><a href="#sec-前向分布算法" id="toc-sec-前向分布算法" class="nav-link" data-scroll-target="#sec-前向分布算法"><span class="header-section-number">1.2</span> 前向分布算法</a></li>
+  </ul></li>
+  <li><a href="#参数估计" id="toc-参数估计" class="nav-link" data-scroll-target="#参数估计"><span class="header-section-number">2</span> 参数估计</a>
+  <ul class="collapse">
+  <li><a href="#数值优化" id="toc-数值优化" class="nav-link" data-scroll-target="#数值优化"><span class="header-section-number">2.1</span> 数值优化</a></li>
+  <li><a href="#最速下降法steepest-descent" id="toc-最速下降法steepest-descent" class="nav-link" data-scroll-target="#最速下降法steepest-descent"><span class="header-section-number">2.2</span> 最速下降法(Steepest-descent)</a></li>
+  <li><a href="#函数空间上的数值优化" id="toc-函数空间上的数值优化" class="nav-link" data-scroll-target="#函数空间上的数值优化"><span class="header-section-number">2.3</span> 函数空间上的数值优化</a></li>
+  <li><a href="#有限维数据梯度提升算法" id="toc-有限维数据梯度提升算法" class="nav-link" data-scroll-target="#有限维数据梯度提升算法"><span class="header-section-number">2.4</span> 有限维数据——梯度提升算法</a></li>
+  </ul></li>
+  <li><a href="#gbdt算法" id="toc-gbdt算法" class="nav-link" data-scroll-target="#gbdt算法"><span class="header-section-number">3</span> GBDT算法</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>GBDT (Gradient Boosting Decision Tree), 梯度提升树。它是一种基于决策树的集成算法。</p>
+<ul>
+<li><p>基本结构：决策树组成的树林</p></li>
+<li><p>学习方式：梯度提升</p></li>
+</ul>
+<p>通过构造一组弱的学习（树），并把多颗决策树的结果累加起来作为最终的预测输出。该算法将决策树与集成思想进行了有效结合。</p>
+<section id="gbdt详解" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> GBDT详解</h1>
+<p>接下来将详细介绍GBDT模型。</p>
+<section id="gbdt的原理" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="gbdt的原理"><span class="header-section-number">1.1</span> GBDT的原理</h2>
+<ul>
+<li>所有弱分类器的结构相加等于预测值</li>
+<li>每次都以当前预测值为基准，下一个弱分类器去拟合误差函数对预测值的误差</li>
+<li>GBDT 的弱分类器使用的是树模型</li>
+</ul>
+</section>
+<section id="sec-前向分布算法" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="sec-前向分布算法"><span class="header-section-number">1.2</span> 前向分布算法</h2>
+<p>许多加法模型都有如下形式</p>
+<p><span class="math display">\[
+f(x)=\sum_{i=1}^M\beta_m b(x,\gamma_m)
+\]</span></p>
+<p><span class="math inline">\(\beta_m\)</span> 是系数, <span class="math inline">\(b(x,\gamma_m)\)</span> 是基函数并带有一组参数 <span class="math inline">\(\gamma_m\)</span>。 这类模型的参数的求解大都采用极小化如下损失函数：</p>
+<p><span class="math display">\[
+\sum_{i=1}^nL(y_i,\sum_{m=1}^M\beta_mb(x,\gamma_m))
+\]</span></p>
+<p>但是当样本足够多，问题较为复杂时，如果直接求解，则要估计的参数将会有 <span class="math inline">\(M+\sum_{m=1}^M\dim(\gamma_m)\)</span> 个，求解十分耗费算力，于是前向分布算法(Forward stagewise additive modeling)被提出了。 前向分布算法将原来的问题转换为——一步一步的估计基函数项，当在估计某一基函数项 <span class="math inline">\(\beta_mb(x,\gamma_m)\)</span> 时，其之前的 <span class="math inline">\(\beta_ib(x,\gamma_i),i=1,2,\ldots,m-1\)</span> 将作为定值，不再被改变，故该算法的第m步即是取解决如下下问题：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\min&amp; \sum_{i=1}^nL(y_i,f_m(x))\\
+f_m(x)&amp;=f_{m-1}(x)+\beta_mb(x,\gamma_m)
+\end{aligned}
+\]</span></p>
+<p>其中 <span class="math inline">\(f_{m-1}(x)\)</span> 已知。 当我们假定采用平方损失函数时，我们有：</p>
+<p><span class="math display">\[
+\begin{aligned}
+Loss&amp;=\sum_{i=1}^n\frac 12[y_i-(f_{m-1}(x)+\beta_mb(x,\gamma_m))]^2\\
+&amp;=\sum_{i=1}^n\frac 12[(y_i-f_{m-1}(x))-\beta_mb(x,\gamma_m)]^2\\
+&amp;=\sum_{i=1}^n\frac 12(r_{mi}-\beta_mb(x,\gamma_m))^2
+\end{aligned}
+\]</span></p>
+<p><span class="math inline">\(r_{mi}=y_i-f_{m-1}(x_i)\)</span> 是在第m-1 步拟合后模型的残差，从损失函数得第m步的本质在于利用第m个基函数对上一步所得残差进行拟合，但这种理解是建立在损失函数为平方损失的情况下。</p>
+<ul>
+<li><p>前向的意义：“前向”指的是逐步进行的过程，即算法是从零开始，逐步向解的方向构建和优化。每一步添加一个新的基函数或模型参数，以逐渐逼近最终的目标。与之相对的概念是“后向”（Backward），后向算法通常从一个复杂的模型开始，然后逐步移除不必要的成分，而前向算法则是从简单的模型开始逐步加成。</p></li>
+<li><p>分布的含义：“分布”或”阶段性”（Stagewise）意味着算法在每一步迭代时，只增加一个新的基函数或参数，而不会对之前的基函数或参数进行重新调整。也就是说，每次迭代仅调整新增的模型成分，已添加的部分在整个过程中保持不变。这种特性使得算法较为保守，每次变化较小，且有利于控制模型的复杂度和避免过拟合。</p></li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="参数估计" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> 参数估计</h1>
+<p>假设有一个加法模型：</p>
+<p><span class="math display">\[
+F(\mathbf x;\{\beta_m,\mathbf a_m\}_1^M)=\sum_{i=1}^M\beta_mh(\mathbf x;\mathbf a_m)
+\]</span></p>
+<p><span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> 是一个参数比较简单的基函数；<span class="math inline">\(\mathbf a=\{a_1,a_2,\ldots\}\)</span></p>
+<section id="数值优化" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="数值优化"><span class="header-section-number">2.1</span> 数值优化</h2>
+<p>需要估计的参数为：</p>
+<p><span class="math display">\[
+\mathbf P^*=\arg\min_{\mathbf P}\Phi(\mathbf P)
+\]</span></p>
+<p><span class="math display">\[
+\Phi(\mathbf P)=E_{y,\mathbf x}L(y,F(\mathbf x;\mathbf P))
+\]</span></p>
+<p>最优的模型为：</p>
+<p><span class="math display">\[
+F^*(\mathbf x)=F(\mathbf x;\mathbf P^*)
+\]</span></p>
+<p>参数的组成：</p>
+<p><span class="math display">\[
+\mathbf P^*=\sum_{m=0}^M\mathbf p_m
+\]</span></p>
+<p>对于参数构成的理解：即所有参数的列向量，每一次拟合模型都相当于往 <span class="math inline">\(\mathbf P\)</span> 的某些列上加值/更新值。</p>
+</section>
+<section id="最速下降法steepest-descent" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="最速下降法steepest-descent"><span class="header-section-number">2.2</span> 最速下降法(Steepest-descent)</h2>
+<p>由前面讨论可得，有如下优化问题：</p>
+<p><span class="math display">\[
+\min_{\mathbf P}\Phi(\mathbf P)
+\]</span></p>
+<p>则由梯度下降法得到的梯度为：</p>
+<p><span class="math display">\[
+\mathbf g_m=\nabla\Phi(\mathbf P)|_{\mathbf P=\mathbf P_{m-1}}=[\frac{\partial\Phi(\mathbf P)}{\partial P_j}|_{\mathbf P =\mathbf P_{m-1} }]^T
+\]</span></p>
+<p>由于 <span class="math inline">\(\mathbf P_{m-1}=\sum_{i=0}^{m-1}\mathbf p_i\)</span>, 则得到如下迭代公式：</p>
+<p><span class="math display">\[
+\mathbf P_m=\mathbf P_{m-1}+\mathbf p_m
+\]</span></p>
+<p>而由最速下降法得:</p>
+<p><span class="math display">\[
+\mathbf p_m=-\rho_m\mathbf g_m
+\]</span></p>
+<p>由一维线搜索得步长 <span class="math inline">\(\rho_m\)</span> 有下式决定： 由前面讨论可得，有如下优化问题：</p>
+<p><span class="math display">\[
+\min_{\mathbf P}\Phi(\mathbf P)
+\]</span></p>
+<p>则由梯度下降法得到的梯度为：</p>
+<p><span class="math display">\[
+\mathbf g_m=\nabla\Phi(\mathbf P)|_{\mathbf P=\mathbf P_{m-1}}=[\frac{\partial\Phi(\mathbf P)}{\partial P_j}|_{\mathbf P =\mathbf P_{m-1} }]^T
+\]</span></p>
+<p>由于 <span class="math inline">\(\mathbf P_{m-1}=\sum_{i=0}^{m-1}\mathbf p_i\)</span>, 则得到如下迭代公式：</p>
+<p><span class="math display">\[
+\mathbf P_m=\mathbf P_{m-1}+\mathbf p_m
+\]</span></p>
+<p>而由最速下降法得:</p>
+<p><span class="math display">\[
+\mathbf p_m=-\rho_m\mathbf g_m
+\]</span></p>
+<p>由一维线搜索得步长 <span class="math inline">\(\rho_m\)</span> 有下式决定：</p>
+<p><span class="math display">\[
+\rho_m=\arg\min_\rho\Phi(\mathbf P_{m-1}-\rho\mathbf g_m)
+\]</span></p>
+</section>
+<section id="函数空间上的数值优化" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="函数空间上的数值优化"><span class="header-section-number">2.3</span> 函数空间上的数值优化</h2>
+<p>假定某函数由多个基函数相加而成，即加法模型：</p>
+<p><span class="math display">\[
+F^*(x)=\sum_{m=0}^Mf_m(x)
+\]</span></p>
+<p>有如下优化问题：</p>
+<p><span class="math display">\[
+\min\Phi(F(x))=E_y[L(y,F(x))|x]
+\]</span></p>
+<p><span class="math inline">\(F_m(x)\)</span> 是迭代的类似于 <span class="math inline">\(x_k=x_{k-1}+\alpha_kd_k\)</span> 则由最速下降法得：</p>
+<p><span class="math display">\[
+f_m(\mathbf x)=-\rho_m\mathbf g_m(\mathbf x)
+\]</span></p>
+<p><span class="math display">\[
+\mathbf g_m(\mathbf x)=E_y[\frac{\partial L(y,F(\mathbf x))}{\partial F(\mathbf x)}|\mathbf x]_{\mathbf F(x)=\mathbf F_{m-1}(\mathbf x)}
+\]</span></p>
+<p>步长 <span class="math inline">\(\rho_m\)</span> 由下列精确一维线搜索决定：</p>
+<p><span class="math display">\[
+\rho_m = \arg\min_\rho E_{y,\mathbf x}L(y,F_{m-1}(\mathbf x)-\rho\mathbf g_m(\mathbf x))
+\]</span></p>
+</section>
+<section id="有限维数据梯度提升算法" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="有限维数据梯度提升算法"><span class="header-section-number">2.4</span> 有限维数据——梯度提升算法</h2>
+<p>从参数的角度而言，已知样本数据 <span class="math inline">\(\{y_i,\mathbf x_i\}\)</span>，模型为加法模型，则有如下参数优化问题：</p>
+<p><span id="eq-参数优化限制条件"><span class="math display">\[
+\{\beta_m^*,\mathbf a_m^*\}_1^M=\arg\min_{\{\beta_m,\mathbf a_m\}_1^M}\sum_{i=1}^NL(y_i,\sum_{m=1}^M\beta_mh(\mathbf x_i;\mathbf a_m))
+\tag{1}\]</span></span></p>
+<p>要直接求解上述参数优化问题将会比较棘手，因为需要在一个优化问题中求解 <span class="math inline">\(M\cdot(1+\dim (\mathbf a_m))\)</span> 个参数，参数个数庞大，我们考虑使用 <a href="#sec-前向分布算法" class="quarto-xref">Section&nbsp;1.2</a> 中的前向分布算法，其将一个参数优化问题转换为一个函数优化问题。 利用前向分布算法后，此时需要解决函数优化问题，即对该优化问题的每一步有：</p>
+<p><span class="math display">\[
+F^*=\arg\min_{F}\sum_{i=1}^NL(y_i,F(\mathbf x_i))
+\]</span></p>
+<p><span class="math display">\[
+F_m(\mathbf x)=F_{m-1}(\mathbf x)+\beta_m h(\mathbf x;\mathbf a_m)
+\]</span></p>
+<p>由最速下降法得:</p>
+<p><span class="math display">\[
+h(\mathbf x_i;\mathbf a_m)=-\mathbf g_m(\mathbf x_i)=-[\frac{\partial L(y_i,F(\mathbf x_i))}{\partial F(\mathbf x_i)}]_{F(\mathbf x)=F_{m-1}(\mathbf x)}
+\]</span></p>
+<p>但是 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> 是一个在 <span class="math inline">\(\mathcal D_{\mathbf x}\)</span> 上均有定义的函数，而 <span class="math inline">\(\mathbf g_m(\mathbf x_i)\)</span> 仅在 <span class="math inline">\(\{\mathbf x_1,\ldots,x_N\}\)</span> 处有定义，故上式并不能直接将 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> 直接确定下来，需要采用其他方式让 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> 去贴合负梯度方向。 一种想法是在 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> 函数族中找到一个 <span class="math inline">\(h^*(\mathbf x;\mathbf a_m)\)</span> 使得 <span class="math inline">\(\mathcal h_m=\{h(\mathcal x_i;\mathcal a_m)\}_1^N\)</span> 与 <span class="math inline">\(-\mathcal g_m\)</span> 最平行，则有如下优化问题：</p>
+<p><span class="math display">\[
+\mathbf a_m=\arg\min_a\sum_{i=1}^N[-\mathbf g_m(\mathbf x_i)-\alpha h(\mathbf x_i;\mathbf a)]^2
+\]</span></p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+寻找负梯度方向说明
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>此处的思想是回归的思想，但是没有截距项因为我们要的就是尽量平行。两向量平行的数学定义是 <span class="math inline">\(-\mathbf g_m=\alpha \mathbf h_m\)</span></p></li>
+<li><p><span class="math inline">\(\alpha\)</span> 也是该优化问题所要求解的</p></li>
+</ul>
+</div>
+</div>
+<p>一旦确定了 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> 后，我们便可利用精确一维线搜索去求解步长 <span class="math inline">\(\beta_m\)</span>:</p>
+<p><span class="math display">\[
+\beta_m=\arg\min_{\beta}\sum_{i=1}^NL(y_i,F_{m-1}(\mathbf x_i+\beta h(\mathbf x_i;\mathbf a_m)))
+\]</span></p>
+<p>确定了 <span class="math inline">\(\beta_m,\mathbf a_m\)</span> 后便可得到：</p>
+<p><span class="math display">\[
+F_m(\mathbf x)=F_{m-1}(\mathbf x)+\beta_m h(\mathbf x;\mathbf a_m)
+\]</span></p>
+<p>在现实数据中并不是直接去找 <a href="#eq-参数优化限制条件" class="quarto-xref">Equation&nbsp;1</a> 下的 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> ，而是将 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> 去拟合伪响应 <span class="math inline">\(\{\tilde{y}_i=-\mathbf g_m(\mathbf x_i)\}_i^N\)</span>, 这使得函数优化问题转化为了最小二乘函数优化问题。</p>
+<div class="pseudocode-container quarto-float" data-caption-prefix="算法" data-pseudocode-number="1">
+<div class="pseudocode">
+\begin{algorithm} \caption{梯度提升算法} \begin{algorithmic} \State 初始化模型 $F_0(\mathbf{x}) = \arg\min_{\rho} \sum_{i=1}^N L(y_i, \rho)$ \For{$m = 1$ 到 $M$} \State 计算伪残差：$\tilde y_i = -\left[\frac{\partial L(y_i, F(\mathbf{x}_i))}{\partial F(\mathbf{x}_i)}\right]_{F=F_{m-1}}$ \State 拟合一个基学习器 $h_m(\mathbf{x};\mathbf a_m)$ 来拟合伪残差 $\tilde y_i:\mathbf a_m=\arg\min_{\mathbf a}\sum_{i=1}^N[-\mathbf g_m(\mathbf x_i)-\alpha h(\mathbf x_i;\mathbf a)]^2$ \State 计算最佳步长：$\beta_m=\arg\min_{\beta}\sum_{i=1}^NL(y_i,F_{m-1}(\mathbf x_i+\beta h(\mathbf x_i;\mathbf a_m)))$ \State 更新模型：$F_m(\mathbf{x}) = F_{m-1}(\mathbf{x}) + \beta_m h_m(\mathbf{x};\mathbf a_m)$ \EndFor \State \Return 最终模型 $F_M(\mathbf{x})$ \end{algorithmic} \end{algorithm}
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="gbdt算法" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> GBDT算法</h1>
+<p>GBDT算法如下：</p>
+<ul>
+<li>要拟合的模型是: <span class="math inline">\(f(\mathbf{x})=f_0(\mathbf{x})+\sum_{m=1}^M\beta_m\sum_{j=1}^J\Upsilon_{jm}I(\mathbf{x}\in R_{im})，\mathbf{x}=(x_1,x_2,\ldots,x_p)^T\)</span></li>
+<li>数据结构：即有n个样本，p个特征 <span class="math inline">\(X=\begin{pmatrix}\mathbf{x}_1\\\vdots\\\mathbf{x}_n\end{pmatrix}\)</span></li>
+</ul>
+<ol type="1">
+<li><p>初始化学习器 该弱学习器不具有任何参数即 <span class="math inline">\(f_0(\mathbf{x}_i)=c\)</span> 则 <span class="math inline">\(f_0(\mathbf x)=\arg\min_c\sum_{i=1}^n L(y_i,c)\)</span> ，一般情况下可以取平方损失即 <span class="math inline">\(L(y_i,c)=\frac 12(y_i-c)^2\)</span> 求导可得 <span class="math inline">\(\frac{\partial \sum_{i=1}^N(\frac 12 (y_i-c)^2)}{\partial c}=-\sum_{i=1}^N(y_i-c)=0\Rightarrow c=\frac 1N\sum_{i=1}^N y_i\)</span>, 即在损失为平方损失的情况下，初始化的弱学习器将会使得各样本的初始值为它们的均值。</p></li>
+<li><p>构建后续学习器 对 <span class="math inline">\(m=1,2,\ldots,M\)</span> ，即构建M个决策树，假设取平方损失，则对于第m步而言损失函数有如下形式： <span class="math inline">\(Loss=\sum_{i=1}^n\frac 12(y_i-f(\mathbf{x}_i))^2=L(\mathbf{y},f(\mathbf{x}))|_{f(\mathbf{x})=f_{m}(\mathbf{x})}=\frac12||\mathbf y-F_m(X)||_2^2\)</span> <span class="math inline">\(F_m(X)=\begin{pmatrix}f_m(\mathbf x_1)\\\vdots\\f_m(\mathbf x_n)\end{pmatrix},B(\mathbf x,\gamma_m)=\begin{pmatrix}b(\mathbf x_1,\gamma_m)\\\vdots\\b(\mathbf x_n,\gamma_m)\end{pmatrix},\mathbf y=\begin{pmatrix}y_1\\\vdots\\ y_n\end{pmatrix}\)</span></p>
+<p>第m步的模型为: <span class="math inline">\(f_m(\mathbf{x})=f_{m-1}(\mathbf{x})+\sum_{j=1}^J\Upsilon_{jm}I(\mathbf{x}\in R_{jm})=f_{m-1}(\mathbf{x})+b(\mathbf{x},\gamma_m)\)</span></p>
+<p>由最速下降法得第m步的迭代公式为（以 <span class="math inline">\(F_m(X)\)</span> 为整体）：<span class="math inline">\(F_m(X)=F_{m-1}(X)-\alpha_{m-1}g_{m-1},g_{m-1}=\nabla_{F_{m-1}(X)} L(\mathbf{y},F(X))\)</span> 令 <span class="math inline">\(\alpha_k=\mathbf 1_n,k=1,2,\ldots,m-1\)</span>, 则有当 <span class="math inline">\(F_m(X)=F_{m-1}(X)-\frac{\partial L(\mathbf y,F(X))}{\partial F(X)}|_{F(X)=F_{m-1}(X)}\)</span></p>
+<p>而由 <span class="math inline">\(f_m(\mathbf x)\)</span> 的形式可得 <span class="math inline">\(B(\mathbf x,\gamma_m)=-\frac{\partial L(\mathbf y,F(X))}{\partial F(X)}|_{F(X)=F_{m-1}(X)}\)</span> 由Matrix cookbook书得有：<span class="math inline">\(\frac{\partial \mathbf x^T\mathbf a}{\partial \mathbf x}=\frac{\partial \mathbf a^T\mathbf x}{\partial \mathbf x}=\mathbf a\)</span> 和 <span class="math inline">\(\frac{\partial \mathbf b^TX^TX\mathbf c}{\partial X}=X(\mathbf b\mathbf c^T+\mathbf c\mathbf b^T)\)</span> <span class="math inline">\(-\frac{\partial L(\mathbf y,F(X))}{\partial F(X)}|_{F(X)=F_{m-1}(X)}=-\frac 12[-2\mathbf y+2F_{m-1}(X)]=\mathbf y-F_{m-1}(X)\)</span></p>
+<p>也即 <span class="math inline">\(b(\mathbf x_i,\gamma_m)=r_{im}=y_i-f_{m-1}(\mathbf x)\)</span>，即第m颗决策树需要拟合的是上一颗决策树构建后所得的残差。</p></li>
+<li><p>用 <span class="math inline">\((\mathbf x_i,r_{im})_{i=1}^n\)</span> 建立第m颗树后，需要利用一维线搜索解决如下一维优化问题以计算 <span class="math inline">\(\beta_m\)</span>: <span class="math inline">\(\beta_m=\arg\min_{\beta}\sum_{i=1}^NL(y_i,F_{m-1}(\mathbf x_i+\beta h(\mathbf x_i;\mathbf a_m)))\)</span></p></li>
+</ol>
+<p><code>最终的学习器</code>即为：<span class="math inline">\(f(\mathbf x)=f_0(\mathbf x)+\sum_{m=1}^M\sum_{j=1}^J\Upsilon_{jm}I(\mathbf x\in R_{jm})\)</span></p>
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
+      for (let i=0; i<annoteTargets.length; i++) {
+        const annoteTarget = annoteTargets[i];
+        const targetCell = annoteTarget.getAttribute("data-target-cell");
+        const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
+        const contentFn = () => {
+          const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          if (content) {
+            const tipContent = content.cloneNode(true);
+            tipContent.classList.add("code-annotation-tip-content");
+            return tipContent.outerHTML;
+          }
+        }
+        const config = {
+          allowHTML: true,
+          content: contentFn,
+          onShow: (instance) => {
+            selectCodeLines(instance.reference);
+            instance.reference.classList.add('code-annotation-active');
+            window.tippy.hideAll();
+          },
+          onHide: (instance) => {
+            unselectCodeLines();
+            instance.reference.classList.remove('code-annotation-active');
+          },
+          maxWidth: 300,
+          delay: [50, 0],
+          duration: [200, 0],
+          offset: [5, 10],
+          arrow: true,
+          appendTo: function(el) {
+            return el.parentElement.parentElement.parentElement;
+          },
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'quarto',
+          placement: 'right',
+          popperOptions: {
+            modifiers: [
+            {
+              name: 'flip',
+              options: {
+                flipVariations: false, // true by default
+                allowedAutoPlacements: ['right'],
+                fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
+              },
+            },
+            {
+              name: 'preventOverflow',
+              options: {
+                mainAxis: false,
+                altAxis: false
+              }
+            }
+            ]        
+          }      
+        };
+        window.tippy(annoteTarget, config); 
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+    <script type="text/javascript">
+    (function(d) {
+      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+        let pseudocodeOptions = {
+          indentSize: el.dataset.indentSize || "1.2em",
+          commentDelimiter: el.dataset.commentDelimiter || "//",
+          lineNumber: el.dataset.lineNumber === "true" ? true : false,
+          lineNumberPunc: el.dataset.lineNumberPunc || ":",
+          noEnd: el.dataset.noEnd === "true" ? true : false,
+          titlePrefix: el.dataset.captionPrefix || "Algorithm"
+        };
+        pseudocode.renderElement(el.querySelector(".pseudocode"), pseudocodeOptions);
+      });
+    })(document);
+    (function(d) {
+      d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+        let captionSpan = el.querySelector(".ps-root > .ps-algorithm > .ps-line > .ps-keyword")
+        if (captionSpan !== null) {
+          let captionPrefix = el.dataset.captionPrefix + " ";
+          let captionNumber = "";
+          if (el.dataset.pseudocodeNumber) {
+            captionNumber = el.dataset.pseudocodeNumber + " ";
+            if (el.dataset.chapterLevel) {
+              captionNumber = el.dataset.chapterLevel + "." + captionNumber;
+            }
+          }
+          captionSpan.innerHTML = captionPrefix + captionNumber;
+        }
+      });
+    })(document);
+    </script>
+  
+
+
+
+
+</body></html>

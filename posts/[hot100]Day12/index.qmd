@@ -1,0 +1,114 @@
+---
+title: "Day12"
+date: 2025/03/10
+categories: [刷题, 算法]
+description: "介绍有关线性表中数组部分的分发糖果"
+---
+
+# 只出现一次的数字
+
+![](images/paste-1.png)
+
+::: callout-note
+# 分析
+
+考察位进制的计算。
+
+-   一个数与0异或将会得到该数本身
+-   一个数与同一个数异或则又会得到数字本身
+
+因此该题可用异或操作即可，数初始设置为0，当仅出现一次的数异或后，再不停的两次异或相同数，最终得到的数就是出现一次的
+:::
+
+::: panel-tabset
+# Python
+
+``` python
+class Solution:
+    def singleNumber(self, nums: List[int]) -> int:
+        x = 0
+        for i in nums:
+            x ^= i
+        return x
+```
+
+# C++
+
+``` cpp
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        int x = 0;
+        for (int i = 0; i < nums.size(); i++) x ^= nums[i];
+        return x;
+    }
+};
+```
+:::
+
+# 只出现一次的数字Ⅱ
+
+![](images/paste-2.png)
+
+::: callout-note
+# 分析
+
+由于数组中的元素都在 int（即 32 位整数）范围内，因此我们可以依次计算答案的每一个二进制位是 0 还是 1。
+
+具体地，考虑答案的第 i 个二进制位（i 从 0 开始编号），它可能为 0 或 1。对于数组中非答案的元素，每一个元素都出现了 3 次，对应着第 i 个二进制位的 3 个 0 或 3 个 1，无论是哪一种情况，它们的和都是 3 的倍数（即和为 0 或 3）。因此：
+
+**答案的第 i 个二进制位就是数组中所有元素的第 i 个二进制位之和除以 3 的余数。**
+
+这样一来，对于数组中的每一个元素 x，我们使用位运算 (x \>\> i) & 1 得到 x 的第 i 个二进制位，并将它们相加再对 3 取余，得到的结果一定为 0 或 1，即为答案的第 i 个二进制位。
+
+- 一个十进制数 $a>>j=a/2^j$ 得到的值的二进制的 $2^0$ 前的系数即为原 $2^j$ 前的系数值。
+:::
+
+::: panel-tabset
+# C++
+
+```c++
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        const int W = sizeof(int) * 8;  // <1>
+        int count[W];  // <2>
+        fill_n(&count[0], W, 0);  // <3>
+        for (int i = 0; i < nums.size(); i++) {
+            for (int j = 0; j < W; j++) {
+                count[j] += (nums[i] >> j) & 1;
+                count[j] %= 3;
+            }
+        }
+        int result = 0;
+        for (int i = 0; i < W; i++) {
+            result += (count[i] << i);
+        }
+        return result;
+    }
+};
+```
+1. sizeof()返回指定类型的字节数，一字节等于8bit
+2. C++创建数组的方式
+3. fill\_n(`begin\_place`,`howManyToBeFilled`,`fillWhatNumber`)函数
+
+# Python
+```python
+class Solution:
+    def singleNumber(self, nums: List[int]) -> int:
+        import sys
+        W = sys.getsizeof(int) * 8
+        count = [0] * W
+        for i in nums:
+            for j in range(W):
+                count[j] += (i >> j) & 1
+                count[j] %= 3
+        result = 0
+        for i in range(W):
+            result += (count[i] << i)
+        
+        if result >= 2**(W - 1):
+            result -= 2**W
+        return result 
+```
+:::
