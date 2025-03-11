@@ -419,7 +419,7 @@ h(\mathbf x_i;\mathbf a_m)=-\mathbf g_m(\mathbf x_i)=-[\frac{\partial L(y_i,F(\m
 F_m(\mathbf x)=F_{m-1}(\mathbf x)+\beta_m h(\mathbf x;\mathbf a_m)
 \]</span></p>
 <p>在现实数据中并不是直接去找 <a href="#eq-参数优化限制条件" class="quarto-xref">Equation&nbsp;1</a> 下的 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> ，而是将 <span class="math inline">\(h(\mathbf x;\mathbf a_m)\)</span> 去拟合伪响应 <span class="math inline">\(\{\tilde{y}_i=-\mathbf g_m(\mathbf x_i)\}_i^N\)</span>, 这使得函数优化问题转化为了最小二乘函数优化问题。</p>
-<div class="pseudocode-container quarto-float" data-pseudocode-number="1" data-caption-prefix="算法">
+<div class="pseudocode-container quarto-float" data-caption-prefix="算法" data-pseudocode-number="1">
 <div class="pseudocode">
 \begin{algorithm} \caption{梯度提升算法} \begin{algorithmic} \State 初始化模型 $F_0(\mathbf{x}) = \arg\min_{\rho} \sum_{i=1}^N L(y_i, \rho)$ \For{$m = 1$ 到 $M$} \State 计算伪残差：$\tilde y_i = -\left[\frac{\partial L(y_i, F(\mathbf{x}_i))}{\partial F(\mathbf{x}_i)}\right]_{F=F_{m-1}}$ \State 拟合一个基学习器 $h_m(\mathbf{x};\mathbf a_m)$ 来拟合伪残差 $\tilde y_i:\mathbf a_m=\arg\min_{\mathbf a}\sum_{i=1}^N[-\mathbf g_m(\mathbf x_i)-\alpha h(\mathbf x_i;\mathbf a)]^2$ \State 计算最佳步长：$\beta_m=\arg\min_{\beta}\sum_{i=1}^NL(y_i,F_{m-1}(\mathbf x_i+\beta h(\mathbf x_i;\mathbf a_m)))$ \State 更新模型：$F_m(\mathbf{x}) = F_{m-1}(\mathbf{x}) + \beta_m h_m(\mathbf{x};\mathbf a_m)$ \EndFor \State \Return 最终模型 $F_M(\mathbf{x})$ \end{algorithmic} \end{algorithm}
 </div>
@@ -806,64 +806,25 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         }
       };
     }
-      const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
-      for (let i=0; i<annoteTargets.length; i++) {
-        const annoteTarget = annoteTargets[i];
-        const targetCell = annoteTarget.getAttribute("data-target-cell");
-        const targetAnnotation = annoteTarget.getAttribute("data-target-annotation");
-        const contentFn = () => {
-          const content = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
-          if (content) {
-            const tipContent = content.cloneNode(true);
-            tipContent.classList.add("code-annotation-tip-content");
-            return tipContent.outerHTML;
-          }
-        }
-        const config = {
-          allowHTML: true,
-          content: contentFn,
-          onShow: (instance) => {
-            selectCodeLines(instance.reference);
-            instance.reference.classList.add('code-annotation-active');
-            window.tippy.hideAll();
-          },
-          onHide: (instance) => {
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
             unselectCodeLines();
-            instance.reference.classList.remove('code-annotation-active');
-          },
-          maxWidth: 300,
-          delay: [50, 0],
-          duration: [200, 0],
-          offset: [5, 10],
-          arrow: true,
-          appendTo: function(el) {
-            return el.parentElement.parentElement.parentElement;
-          },
-          interactive: true,
-          interactiveBorder: 10,
-          theme: 'quarto',
-          placement: 'right',
-          popperOptions: {
-            modifiers: [
-            {
-              name: 'flip',
-              options: {
-                flipVariations: false, // true by default
-                allowedAutoPlacements: ['right'],
-                fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
-              },
-            },
-            {
-              name: 'preventOverflow',
-              options: {
-                mainAxis: false,
-                altAxis: false
-              }
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
             }
-            ]        
-          }      
-        };
-        window.tippy(annoteTarget, config); 
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
       }
   const findCites = (el) => {
     const parentEl = el.parentElement;
