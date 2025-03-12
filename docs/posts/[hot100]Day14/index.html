@@ -250,6 +250,8 @@ window.Quarto = {
   <li><a href="#反转链表ⅱ" id="toc-反转链表ⅱ" class="nav-link active" data-scroll-target="#反转链表ⅱ"><span class="header-section-number">1</span> 反转链表Ⅱ</a></li>
   <li><a href="#分隔链表" id="toc-分隔链表" class="nav-link" data-scroll-target="#分隔链表"><span class="header-section-number">2</span> 分隔链表</a></li>
   <li><a href="#删除排序链表中的重复元素" id="toc-删除排序链表中的重复元素" class="nav-link" data-scroll-target="#删除排序链表中的重复元素"><span class="header-section-number">3</span> 删除排序链表中的重复元素</a></li>
+  <li><a href="#删除排序链表中的重复元素ⅱ" id="toc-删除排序链表中的重复元素ⅱ" class="nav-link" data-scroll-target="#删除排序链表中的重复元素ⅱ"><span class="header-section-number">4</span> 删除排序链表中的重复元素Ⅱ</a></li>
+  <li><a href="#旋转链表" id="toc-旋转链表" class="nav-link" data-scroll-target="#旋转链表"><span class="header-section-number">5</span> 旋转链表</a></li>
   </ul>
 </nav>
 </nav>
@@ -516,6 +518,81 @@ window.Quarto = {
 </div>
 </div>
 </div>
+</section>
+<section id="删除排序链表中的重复元素ⅱ" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> 删除排序链表中的重复元素Ⅱ</h1>
+<p><a href="images/paste-5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="images/paste-5.png" class="img-fluid"></a></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+分析
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>比较后边的两个数若一致则伺机删除。</p>
+</div>
+</div>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">Python</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">C++</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Definition for singly-linked list.</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># class ListNode:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#     def __init__(self, val=0, next=None):</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#         self.val = val</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#         self.next = next</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Solution:</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> deleteDuplicates(<span class="va">self</span>, head: Optional[ListNode]) <span class="op">-&gt;</span> Optional[ListNode]:</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        dummy <span class="op">=</span> ListNode(<span class="bu">next</span> <span class="op">=</span> head)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        cur <span class="op">=</span> dummy</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> cur.<span class="bu">next</span> <span class="kw">and</span> cur.<span class="bu">next</span>.<span class="bu">next</span>:</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> cur.<span class="bu">next</span>.val <span class="op">==</span> cur.<span class="bu">next</span>.<span class="bu">next</span>.val:</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                x <span class="op">=</span> cur.<span class="bu">next</span>.val</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                <span class="cf">while</span> cur.<span class="bu">next</span> <span class="kw">and</span> cur.<span class="bu">next</span>.val <span class="op">==</span> x:</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                    cur.<span class="bu">next</span> <span class="op">=</span> cur.<span class="bu">next</span>.<span class="bu">next</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>                cur <span class="op">=</span> cur.<span class="bu">next</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> dummy.<span class="bu">next</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * Definition for singly-linked list.</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * struct ListNode {</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"> *     int val;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"> *     ListNode *next;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"> *     ListNode() : val(0), next(nullptr) {}</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *     ListNode(int x) : val(x), next(nullptr) {}</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *     ListNode(int x, ListNode *next) : val(x), next(next) {}</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"> * };</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Solution <span class="op">{</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    ListNode<span class="op">*</span> deleteDuplicates<span class="op">(</span>ListNode<span class="op">*</span> head<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        ListNode dummy<span class="op">(-</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        dummy<span class="op">.</span>next <span class="op">=</span> head<span class="op">;</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        ListNode <span class="op">*</span>cur <span class="op">=</span> <span class="op">&amp;</span>dummy<span class="op">;</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> <span class="op">(</span>cur<span class="op">-&gt;</span>next <span class="op">&amp;&amp;</span> cur<span class="op">-&gt;</span>next<span class="op">-&gt;</span>next<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>cur<span class="op">-&gt;</span>next<span class="op">-&gt;</span>val <span class="op">==</span> cur<span class="op">-&gt;</span>next<span class="op">-&gt;</span>next<span class="op">-&gt;</span>val<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                <span class="kw">auto</span> x <span class="op">=</span> cur<span class="op">-&gt;</span>next<span class="op">-&gt;</span>val<span class="op">;</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>                <span class="cf">while</span> <span class="op">(</span>cur<span class="op">-&gt;</span>next <span class="op">&amp;&amp;</span> cur<span class="op">-&gt;</span>next<span class="op">-&gt;</span>val <span class="op">==</span> x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>                    cur<span class="op">-&gt;</span>next <span class="op">=</span> cur<span class="op">-&gt;</span>next<span class="op">-&gt;</span>next<span class="op">;</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>                <span class="op">}</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>                cur <span class="op">=</span> cur<span class="op">-&gt;</span>next<span class="op">;</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> </span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> dummy<span class="op">.</span>next<span class="op">;</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="旋转链表" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> 旋转链表</h1>
 
 
 </section>
