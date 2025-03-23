@@ -75,7 +75,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-1092c56c6cadf2eb47b1bc8063ab382a.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-1e3344b42507be46aa4512978d1a1b1a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-985c93953f1b5bdbb98927ea3caa54bd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
@@ -283,7 +283,7 @@ window.Quarto = {
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">伪代码</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">C++</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false">Python</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="pseudocode-container quarto-float" data-caption-prefix="算法" data-pseudocode-number="1">
+<div class="pseudocode-container quarto-float" data-pseudocode-number="1" data-caption-prefix="算法">
 <div class="pseudocode">
 \begin{algorithm} \caption{longestConsecutive(nums)} \begin{algorithmic} \State 哈希表 used \For{i in nums} \State used[i] = false \Comment{初始化所有索引认为均未遍历} \EndFor \State longest = 0\Comment{设置初始化最大连续长度} \For{i in nums}\Comment{开始遍历全部元素这也是时间复杂度为$O(n)$的原因} \If{used[i]} \Continue\Comment{若被遍历过说明其已找到属于它的最大连续子数组，没有必要再遍历} \EndIf \State length = 1\Comment{初始化最大连续长度} \State used[i] = True\Comment{标记该元素已经被遍历} \State j = i + 1\Comment{开始遍历其右侧的值直至不再连续} \While{j in used.keys} \State used[j] = true \State length += 1\Comment{找到了一个连续的} \State j += 1 \EndWhile \State j = i - 1\Comment{继续寻找i左侧的连续值} \While{j in used.keys} \State used[j] = true \State length += 1 \State j -= 1 \EndWhile \State longest = max(length, longest) \EndFor \Return longest \end{algorithmic} \end{algorithm}
 </div>
