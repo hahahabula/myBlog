@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Hahabula">
-<meta name="dcterms.date" content="2025-03-12">
+<meta name="dcterms.date" content="2025-03-30">
 <meta name="description" content="30天吃掉那只Tensorflow2">
 
 <title>结构化数据建模流程范例 – Hahabula_blog</title>
@@ -44,6 +44,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/bootstrap/bootstrap-985c93953f1b5bdbb98927ea3caa54bd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -90,6 +93,35 @@ MathJax = {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -166,7 +198,7 @@ MathJax = {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">March 12, 2025</p>
+        <p class="date">March 30, 2025</p>
       </div>
     </div>
     
@@ -177,7 +209,25 @@ MathJax = {
   </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    
+    <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="3">
+    <h2 id="toc-title">目录</h2>
+   
+  <ul>
+  <li><a href="#数据预处理" id="toc-数据预处理" class="nav-link active" data-scroll-target="#数据预处理"><span class="header-section-number">1</span> 数据预处理</a>
+  <ul class="collapse">
+  <li><a href="#缺失值处理" id="toc-缺失值处理" class="nav-link" data-scroll-target="#缺失值处理"><span class="header-section-number">1.1</span> 缺失值处理</a></li>
+  </ul></li>
+  <li><a href="#描述性统计" id="toc-描述性统计" class="nav-link" data-scroll-target="#描述性统计"><span class="header-section-number">2</span> 描述性统计</a>
+  <ul class="collapse">
+  <li><a href="#因变量存亡状态" id="toc-因变量存亡状态" class="nav-link" data-scroll-target="#因变量存亡状态"><span class="header-section-number">2.1</span> 因变量：存亡状态</a></li>
+  <li><a href="#分类型自变量" id="toc-分类型自变量" class="nav-link" data-scroll-target="#分类型自变量"><span class="header-section-number">2.2</span> 分类型自变量</a></li>
+  <li><a href="#连续型自变量" id="toc-连续型自变量" class="nav-link" data-scroll-target="#连续型自变量"><span class="header-section-number">2.3</span> 连续型自变量</a>
+  <ul class="collapse">
+  <li><a href="#变量间相关性分析" id="toc-变量间相关性分析" class="nav-link" data-scroll-target="#变量间相关性分析"><span class="header-section-number">2.3.1</span> 变量间相关性分析</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
@@ -238,10 +288,376 @@ MathJax = {
 </tr>
 </tbody>
 </table>
+<section id="数据预处理" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> 数据预处理</h1>
+<div class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="1">
+<table class="caption-top table table-sm table-striped small">
+<caption>数据集情况</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">PassengerId</th>
+<th style="text-align: right;">Survived</th>
+<th style="text-align: right;">Pclass</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Sex</th>
+<th style="text-align: right;">Age</th>
+<th style="text-align: right;">SibSp</th>
+<th style="text-align: right;">Parch</th>
+<th style="text-align: left;">Ticket</th>
+<th style="text-align: right;">Fare</th>
+<th style="text-align: left;">Cabin</th>
+<th style="text-align: left;">Embarked</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Braund, Mr.&nbsp;Owen Harris</td>
+<td style="text-align: left;">male</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">A/5 21171</td>
+<td style="text-align: right;">7.25</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">S</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">Cumings, Mrs.&nbsp;John Bradley (Florence Briggs Thayer)</td>
+<td style="text-align: left;">female</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">PC 17599</td>
+<td style="text-align: right;">71.2833</td>
+<td style="text-align: left;">C85</td>
+<td style="text-align: left;">C</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Heikkinen, Miss. Laina</td>
+<td style="text-align: left;">female</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">STON/O2. 3101282</td>
+<td style="text-align: right;">7.925</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">S</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">Futrelle, Mrs.&nbsp;Jacques Heath (Lily May Peel)</td>
+<td style="text-align: left;">female</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">113803</td>
+<td style="text-align: right;">53.1</td>
+<td style="text-align: left;">C123</td>
+<td style="text-align: left;">S</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Allen, Mr.&nbsp;William Henry</td>
+<td style="text-align: left;">male</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">373450</td>
+<td style="text-align: right;">8.05</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">S</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<section id="缺失值处理" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="缺失值处理"><span class="header-section-number">1.1</span> 缺失值处理</h2>
+<div class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="2">
+<table class="caption-top table table-sm table-striped small">
+<caption>样本缺失值情况</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">PassengerId</th>
+<th style="text-align: right;">Survived</th>
+<th style="text-align: right;">Pclass</th>
+<th style="text-align: right;">Name</th>
+<th style="text-align: right;">Sex</th>
+<th style="text-align: right;">Age</th>
+<th style="text-align: right;">SibSp</th>
+<th style="text-align: right;">Parch</th>
+<th style="text-align: right;">Ticket</th>
+<th style="text-align: right;">Fare</th>
+<th style="text-align: right;">Cabin</th>
+<th style="text-align: right;">Embarked</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">177</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">687</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>由于年龄在不同舱位（Pclass）和性别（Sex）之间可能有较大差异，我们可以按照 Pclass 和 Sex 对缺失的年龄进行分组填充（用中位数进行填充）。</p>
+</section>
+</section>
+<section id="描述性统计" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> 描述性统计</h1>
+<p>在对乘客存亡状态的影响因素进行模型探究之前，首先对各变量进行描述性分析，以初步判断存亡状态的影响因素，为后文做铺垫。</p>
+<section id="因变量存亡状态" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="因变量存亡状态"><span class="header-section-number">2.1</span> 因变量：存亡状态</h2>
+<div id="cell-fig-1" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display">
+<div id="fig-1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-1-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: 存亡饼图"><img src="index_files/figure-html/fig-1-output-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: 存亡饼图
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>由 <a href="#fig-1" class="quarto-xref">Figure&nbsp;1</a> 可得未存活的比例为 61.8%，而存活的比例为 38.2%。通过存亡饼图可以看到：存活与未存活的比例分布是不均匀的。具体来说，未存活的比例明显高于存活的比例。这一现象反映了在泰坦尼克号沉船事件中幸存者占少数。</p>
+</section>
+<section id="分类型自变量" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="分类型自变量"><span class="header-section-number">2.2</span> 分类型自变量</h2>
+<p>本篇文章分析的自变量中有 Pclass, Sex, SibSp, Parch 和 Embarked 五个分类型自变量。对于这些分类型自变量本文采用堆叠条形图进行分析，详细分析见下文。</p>
+<div>
+
+</div>
+<div id="cell-fig-2" class="cell quarto-layout-panel" data-layout-ncol="2" data-execution_count="6">
+<div class="quarto-layout-row">
+<div class="cell-output cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-2-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: 舱位等级堆叠条形图"><img src="index_files/figure-html/fig-2-output-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: 舱位等级堆叠条形图
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-2-output-2.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: 性别堆叠条形图"><img src="index_files/figure-html/fig-2-output-2.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: 性别堆叠条形图
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p>由 <a href="#fig-2" class="quarto-xref">Figure&nbsp;3</a> 可得，舱位等级和性别对乘客存活率影响显著，高等级舱位和女性存活率更高，这可能与地理位置、资源分配、逃生优先级及社会规范等因素有关。</p>
+<div>
+
+</div>
+<div id="cell-fig-3" class="cell quarto-layout-panel" data-layout-ncol="2" data-execution_count="7">
+<div class="quarto-layout-row">
+<div class="cell-output cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-3" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-3-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: 同行的兄弟姐妹或配偶人数堆叠条形图"><img src="index_files/figure-html/fig-3-output-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: 同行的兄弟姐妹或配偶人数堆叠条形图
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-3" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-3-output-2.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: 同行的父母或子女人数堆叠条形图"><img src="index_files/figure-html/fig-3-output-2.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: 同行的父母或子女人数堆叠条形图
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p><a href="#fig-3" class="quarto-xref">Figure&nbsp;5</a> 展示了泰坦尼克号乘客的生存情况，随着同行人数增加，存活率先增后减，同行人数为 1 人时存活率最高。这可能是因为适量的同行者能提供支持，但过多同行者可能导致乘客为他人牺牲，从而降低存活率。此外，同行的父母或子女人数与存亡状态的关系较为复杂，但低同行人数（1-3 人）的存活率较高，无同行或同行人数过多时存活率较低，原因可能与兄弟姐妹或配偶人数的影响类似。</p>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout-ncol="2">
+<div class="quarto-layout-row quarto-layout-valign-bottom">
+<div id="cell-fig-4" class="cell quarto-layout-cell" data-execution_count="8" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="cell-output cell-output-display">
+<div id="fig-4" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-4-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: 上船港口堆叠条形图"><img src="index_files/figure-html/fig-4-output-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: 上船港口堆叠条形图
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/paste-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="泰坦尼克号行驶路径"><img src="images/paste-1.png" class="img-fluid figure-img" alt="泰坦尼克号行驶路径"></a></p>
+<figcaption>泰坦尼克号行驶路径<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p><a href="#fig-4" class="quarto-xref">Figure&nbsp;6</a> 展示了从三个不同港口（Cherbourg、Queenstown 和 Southampton）登船的泰坦尼克号乘客的存活与未存活比例，结果显示从 Southampton 登船的乘客存活率最低，而从 Cherbourg 登船的乘客存活率相对较高。</p>
+</section>
+<section id="连续型自变量" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="连续型自变量"><span class="header-section-number">2.3</span> 连续型自变量</h2>
+<p>本文分析的自变量中有 Age 和 Fare 两个连续型自变量。对于这些连续型自变量本文采用小提琴图进行分析，详细分析见下文。</p>
+<div>
+
+</div>
+<div id="cell-fig-5" class="cell quarto-layout-panel" data-layout-ncol="2" data-execution_count="9">
+<div class="quarto-layout-row">
+<div class="cell-output cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-5" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-5-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;7: 年龄小提琴图"><img src="index_files/figure-html/fig-5-output-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: 年龄小提琴图
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-5" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-5-output-2.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;8: 船费小提琴图"><img src="index_files/figure-html/fig-5-output-2.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: 船费小提琴图
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p><a href="#fig-5" class="quarto-xref">Figure&nbsp;8</a> 显示，泰坦尼克号未存活乘客的年龄主要集中在较年长的年龄段，而存活乘客的年龄分布较为均匀且集中在较年轻年龄段。同时，存活乘客的船费分布更广泛，尤其在高船费区间存活人数多于未存活人数，这可能与高等级舱位的高存活率原因相似。</p>
+<section id="变量间相关性分析" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="变量间相关性分析"><span class="header-section-number">2.3.1</span> 变量间相关性分析</h3>
+<p>通过上述分析大致可以得到各变量上乘客存亡情况，为了进一步得到变量间的关系尤其是除存亡状态外的自变量之间的交叉效应，本文继续进行了变量间的相关分析，详细分析见下文。由于需要计算相关系数，因此需要对分类型变量先进行数值化，数值化方式见下表:</p>
+<table class="caption-top table">
+<caption>分类型变量的数值化方式</caption>
+<thead>
+<tr class="header">
+<th><strong>分类变量</strong></th>
+<th><strong>变量数值化方法</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Sex</td>
+<td>1 = “女性”；2 = “男性”</td>
+</tr>
+<tr class="even">
+<td>Embarked</td>
+<td>1 = “Southampton”；2 = “Cherbourg”；3 = “Queenstown”</td>
+</tr>
+</tbody>
+</table>
+<div>
+
+</div>
+<div id="cell-fig-6" class="cell quarto-layout-panel" data-layout-ncol="2" data-execution_count="10">
+<div class="quarto-layout-row quarto-layout-valign-bottom">
+<div class="cell-output cell-output-display quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-6" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-6-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure&nbsp;9: 变量间的散点和 Spearman 相关系数热力图"><img src="index_files/figure-html/fig-6-output-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: 变量间的散点和 Spearman 相关系数热力图
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display quarto-layout-cell" data-execution_count="10" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-6" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="index_files/figure-html/fig-6-output-2.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Figure&nbsp;10: 变量间的弦图"><img src="index_files/figure-html/fig-6-output-2.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: 变量间的弦图
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p>由 <a href="#fig-6" class="quarto-xref">Figure&nbsp;10</a> 可得，存亡状态与性别变量的相关性最高 (<span class="math inline">\(\rho = -0.54\)</span>)，船费和舱位等级的相关系数也较高。由于舱位等级和船费之间具有较强的相关性 (<span class="math inline">\(\rho = -0.69, p = 0.000\)</span>)，且舱位等级更能体现存亡差异，后续分析仅保留舱位等级变量。总体来看，舱位等级、性别和年龄与存活率成反比，尤以性别变量影响最大；而 SibSp、Parch 和上船港口与存活率成正比，但影响较小。</p>
 
 
+</section>
+</section>
+</section>
 
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>ROGILBERT M. 英国皇家邮轮“泰坦尼克号”的停靠站、航线以及 4 月 15 日的失事地点[EB/OL]. (2007-02-25)[2025-01-18]. https://commons.wikimedia.org/wiki/File:TitanicRoute(zh).png.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -692,6 +1108,38 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     })(document);
     </script>
   
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

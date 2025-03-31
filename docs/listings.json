@@ -2,6 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/[hot100]Day26/index.html",
+      "/posts/[Tensorflow2]S1_建模流程/index.html",
       "/posts/[hot100]Day25/index.html",
       "/posts/[hot100]Day24/index.html",
       "/posts/[hot100]Day23/index.html",
@@ -15,7 +17,6 @@
       "/posts/[hot100]Day15/index.html",
       "/posts/[王推]S6/index.html",
       "/posts/[hot100]Day14/index.html",
-      "/posts/[Tensorflow2]S1_建模流程/index.html",
       "/posts/[hot100]Day13/index.html",
       "/posts/[hot100]Day12/index.html",
       "/posts/[hot100]Day11/index.html",
