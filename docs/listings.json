@@ -2,7 +2,10 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/[hot100]Day29/index.html",
       "/posts/[hot100]Day28/index.html",
+      "/posts/[王推]双塔模型/index.html",
+      "/posts/[王推]正负样本的选择/index.html",
       "/posts/[hot100]Day27/index.html",
       "/posts/[hot100]Day26/index.html",
       "/posts/[Tensorflow2]S1_建模流程/index.html",
