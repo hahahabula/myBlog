@@ -8,7 +8,7 @@
 
 <meta name="author" content="Hahabula">
 <meta name="dcterms.date" content="2025-04-10">
-<meta name="description" content="介绍有关排序部分的合并两个有序数组、合并两个有序链表、合并K个升序链表、对链表进行插入排序、排序链表、缺失的第一个正整数、颜色分类">
+<meta name="description" content="介绍有关二叉树的二叉树的层序遍历、二叉树的锯齿形层序遍历、二叉树的右视图、二叉树的层平均值、二叉树的层序遍历 II、二叉树的最近公共祖先、二叉搜索树的最近公共祖先、二叉搜索树中的插入操作、二叉搜索树中的删除操作、二叉搜索树中的搜索">
 
 <title>Day30 – Hahabula_blog</title>
 <style>
@@ -180,7 +180,7 @@ MathJax = {
       <h1 class="title">Day30</h1>
                   <div>
         <div class="description">
-          介绍有关排序部分的合并两个有序数组、合并两个有序链表、合并K个升序链表、对链表进行插入排序、排序链表、缺失的第一个正整数、颜色分类
+          介绍有关二叉树的二叉树的层序遍历、二叉树的锯齿形层序遍历、二叉树的右视图、二叉树的层平均值、二叉树的层序遍历 II、二叉树的最近公共祖先、二叉搜索树的最近公共祖先、二叉搜索树中的插入操作、二叉搜索树中的删除操作、二叉搜索树中的搜索
         </div>
       </div>
                           <div class="quarto-categories">
@@ -745,7 +745,7 @@ MathJax = {
 </section>
 <section id="颜色分类" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> 颜色分类</h1>
-<p><a href="images/paste-9.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="images/paste-9.png" class="img-fluid" width="742"></a></p>
+<p><a href="images/paste-8.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="images/paste-8.png" class="img-fluid" width="759"></a></p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -756,11 +756,11 @@ MathJax = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>采用双指针法，将数组分成三部分，分别表示0、1、2。</p>
+
 </div>
 </div>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">Python</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false">C++</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">Python</a></li></ul>
 <div class="tab-content">
 <div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
 <div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Solution:</span>
@@ -785,8 +785,6 @@ MathJax = {
 <span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
 <span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>                <span class="co"># nums[i] == 1，无需交换，只需移动指针</span></span>
 <span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>                i <span class="op">+=</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
 <div class="sourceCode" id="cb14"><pre class="sourceCode cpp code-with-copy"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Solution <span class="op">{</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> sortColors<span class="op">(</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;&amp;</span> nums<span class="op">)</span> <span class="op">{</span></span>
